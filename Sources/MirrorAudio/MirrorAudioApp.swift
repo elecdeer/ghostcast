@@ -7,6 +7,7 @@ import SwiftUI
 enum SettingsKey {
     static let serverName = "serverName"
     static let bufferTimeMillis = "bufferTimeMillis"
+    static let maxQueueMillis = "maxQueueMillis"
     static let autoStart = "autoStart"
 }
 
@@ -21,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UserDefaults.standard.register(defaults: [
             SettingsKey.serverName: ReceiverConfig.defaultServerName,
             SettingsKey.bufferTimeMillis: ReceiverConfig.defaultBufferTimeMillis,
+            SettingsKey.maxQueueMillis: ReceiverConfig.defaultMaxQueueMillis,
             SettingsKey.autoStart: true,
         ])
         wifi.start()
@@ -38,7 +40,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let defaults = UserDefaults.standard
         return ReceiverConfig(
             serverName: defaults.string(forKey: SettingsKey.serverName) ?? ReceiverConfig.defaultServerName,
-            bufferTimeMicros: defaults.integer(forKey: SettingsKey.bufferTimeMillis) * 1000
+            bufferTimeMicros: defaults.integer(forKey: SettingsKey.bufferTimeMillis) * 1000,
+            maxQueueMicros: defaults.integer(forKey: SettingsKey.maxQueueMillis) * 1000
         )
     }
 }
@@ -144,9 +147,11 @@ struct SettingsView: View {
     let loginItem: LoginItemModel
     @AppStorage(SettingsKey.serverName) private var serverName = ReceiverConfig.defaultServerName
     @AppStorage(SettingsKey.bufferTimeMillis) private var bufferTimeMillis = ReceiverConfig.defaultBufferTimeMillis
+    @AppStorage(SettingsKey.maxQueueMillis) private var maxQueueMillis = ReceiverConfig.defaultMaxQueueMillis
     @AppStorage(SettingsKey.autoStart) private var autoStart = true
 
     private static let bufferChoices = [20, 40, 60, 80, 100, 200]
+    private static let queueChoices = [20, 40, 60, 100, 200, 500]
 
     var body: some View {
         Form {
@@ -155,6 +160,12 @@ struct SettingsView: View {
                 ForEach(Self.bufferChoices, id: \.self) { Text("\($0) ms").tag($0) }
             }
             Text("小さいほど低遅延。音が途切れる場合は大きくしてください。")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Picker("遅延の上限（キュー）", selection: $maxQueueMillis) {
+                ForEach(Self.queueChoices, id: \.self) { Text("\($0) ms").tag($0) }
+            }
+            Text("Wi-Fi の詰まりで溜まった音をここまでで捨てます。小さいほど遅延が安定しますが、音飛びしやすくなります。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Toggle("アプリ起動時にレシーバーを開始", isOn: $autoStart)

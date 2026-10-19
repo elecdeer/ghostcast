@@ -7,8 +7,14 @@ import Testing
         let config = ReceiverConfig(serverName: "Mac mini Audio", bufferTimeMicros: 40_000)
         #expect(config.arguments == [
             "-n", "Mac mini Audio", "-nh", "-vs", "0", "-vsync", "no",
-            "-as", "osxaudiosink buffer-time=40000 latency-time=10000",
+            "-as", "queue max-size-time=60000000 max-size-buffers=0 max-size-bytes=0 leaky=downstream"
+                + " ! osxaudiosink buffer-time=40000 latency-time=10000",
         ])
+    }
+
+    @Test func キューの上限をナノ秒で指定する() {
+        let config = ReceiverConfig(serverName: "x", bufferTimeMicros: 40_000, maxQueueMicros: 100_000)
+        #expect(config.arguments.last?.hasPrefix("queue max-size-time=100000000 ") == true)
     }
 
     @Test func 空のサーバー名は既定名になる() {
@@ -18,7 +24,7 @@ import Testing
 
     @Test func バッファ長はlatencyTime未満にならない() {
         let config = ReceiverConfig(serverName: "x", bufferTimeMicros: 5_000, latencyTimeMicros: 10_000)
-        #expect(config.arguments.last == "osxaudiosink buffer-time=10000 latency-time=10000")
+        #expect(config.arguments.last?.hasSuffix("! osxaudiosink buffer-time=10000 latency-time=10000") == true)
     }
 }
 
