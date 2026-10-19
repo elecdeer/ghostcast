@@ -7,6 +7,7 @@ import Testing
         let config = ReceiverConfig(serverName: "Mac mini Audio", bufferTimeMicros: 40_000)
         #expect(config.arguments == [
             "-n", "Mac mini Audio", "-nh", "-vs", "0", "-vsync", "no",
+            "-s", "320x180@30", "-fps", "5",
             "-as", "queue max-size-time=60000000 max-size-buffers=0 max-size-bytes=0 leaky=downstream"
                 + " ! osxaudiosink buffer-time=40000 latency-time=10000",
         ])
@@ -32,6 +33,19 @@ import Testing
     @Test func キューの上限をナノ秒で指定する() {
         let config = ReceiverConfig(serverName: "x", bufferTimeMicros: 40_000, maxQueueMicros: 100_000)
         #expect(config.arguments.last?.hasPrefix("queue max-size-time=100000000 ") == true)
+    }
+
+    @Test func 映像の解像度とfpsを指定する() {
+        let config = ReceiverConfig(serverName: "x", bufferTimeMicros: 40_000, videoHeight: 90, maxFPS: 1)
+        let args = config.arguments
+        #expect(args[args.firstIndex(of: "-s")! + 1] == "160x90@30")
+        #expect(args[args.firstIndex(of: "-fps")! + 1] == "1")
+    }
+
+    @Test func fpsは1未満にしない() {
+        let config = ReceiverConfig(serverName: "x", bufferTimeMicros: 40_000, maxFPS: 0)
+        let args = config.arguments
+        #expect(args[args.firstIndex(of: "-fps")! + 1] == "1")
     }
 
     @Test func 空のサーバー名は既定名になる() {

@@ -8,6 +8,8 @@ enum SettingsKey {
     static let serverName = "serverName"
     static let bufferTimeMillis = "bufferTimeMillis"
     static let maxQueueMillis = "maxQueueMillis"
+    static let videoHeight = "videoHeight"
+    static let maxFPS = "maxFPS"
     static let autoStart = "autoStart"
     static let forceGameMode = "forceGameMode"
     /// 最後に iPhone から設定された音量（dB）。次回起動時の初期音量にする。
@@ -27,6 +29,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SettingsKey.serverName: ReceiverConfig.defaultServerName,
             SettingsKey.bufferTimeMillis: ReceiverConfig.defaultBufferTimeMillis,
             SettingsKey.maxQueueMillis: ReceiverConfig.defaultMaxQueueMillis,
+            SettingsKey.videoHeight: ReceiverConfig.defaultVideoHeight,
+            SettingsKey.maxFPS: ReceiverConfig.defaultMaxFPS,
             SettingsKey.autoStart: true,
             SettingsKey.forceGameMode: true,
         ])
@@ -64,7 +68,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             serverName: defaults.string(forKey: SettingsKey.serverName) ?? ReceiverConfig.defaultServerName,
             bufferTimeMicros: defaults.integer(forKey: SettingsKey.bufferTimeMillis) * 1000,
             maxQueueMicros: defaults.integer(forKey: SettingsKey.maxQueueMillis) * 1000,
-            initialVolumeDecibels: defaults.object(forKey: SettingsKey.lastVolumeDecibels) as? Double
+            initialVolumeDecibels: defaults.object(forKey: SettingsKey.lastVolumeDecibels) as? Double,
+            videoHeight: defaults.integer(forKey: SettingsKey.videoHeight),
+            maxFPS: defaults.integer(forKey: SettingsKey.maxFPS)
         )
     }
 }
@@ -177,6 +183,8 @@ struct SettingsView: View {
     @AppStorage(SettingsKey.serverName) private var serverName = ReceiverConfig.defaultServerName
     @AppStorage(SettingsKey.bufferTimeMillis) private var bufferTimeMillis = ReceiverConfig.defaultBufferTimeMillis
     @AppStorage(SettingsKey.maxQueueMillis) private var maxQueueMillis = ReceiverConfig.defaultMaxQueueMillis
+    @AppStorage(SettingsKey.videoHeight) private var videoHeight = ReceiverConfig.defaultVideoHeight
+    @AppStorage(SettingsKey.maxFPS) private var maxFPS = ReceiverConfig.defaultMaxFPS
     @AppStorage(SettingsKey.autoStart) private var autoStart = true
     @AppStorage(SettingsKey.forceGameMode) private var forceGameMode = true
 
@@ -185,6 +193,8 @@ struct SettingsView: View {
 
     private static let bufferChoices = [20, 40, 60, 80, 100, 200]
     private static let queueChoices = [20, 40, 60, 100, 200, 500]
+    private static let videoHeightChoices = [90, 180, 360, 720, 1080]
+    private static let fpsChoices = [1, 5, 10, 30]
 
     var body: some View {
         Form {
@@ -199,6 +209,17 @@ struct SettingsView: View {
                 ForEach(Self.queueChoices, id: \.self) { Text("\($0) ms").tag($0) }
             }
             Text("Wi-Fi の詰まりで溜まった音をここまでで捨てます。小さいほど遅延が安定しますが、音飛びしやすくなります。")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Picker("映像の解像度（要求）", selection: $videoHeight) {
+                ForEach(Self.videoHeightChoices, id: \.self) { height in
+                    Text("\(height * 16 / 9)x\(height)").tag(height)
+                }
+            }
+            Picker("映像の最大 fps（要求）", selection: $maxFPS) {
+                ForEach(Self.fpsChoices, id: \.self) { Text("\($0) fps").tag($0) }
+            }
+            Text("映像は捨てているので、低いほど iPhone の負荷と Wi-Fi の混雑が減ります。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Toggle("受信中はゲームモードを強制オン", isOn: Binding(

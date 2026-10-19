@@ -12,19 +12,27 @@ public struct ReceiverConfig: Equatable, Sendable {
     public var maxQueueMicros: Int
     /// 接続時に iPhone へ伝える初期音量（dB）。nil なら uxplay の既定（最大音量）。
     public var initialVolumeDecibels: Double?
+    /// iPhone に要求する映像の高さ（ピクセル）。幅は 16:9 で決める。
+    public var videoHeight: Int
+    /// iPhone に要求する映像の最大フレームレート。
+    public var maxFPS: Int
 
     public init(
         serverName: String,
         bufferTimeMicros: Int,
         latencyTimeMicros: Int = 10_000,
         maxQueueMicros: Int = ReceiverConfig.defaultMaxQueueMillis * 1000,
-        initialVolumeDecibels: Double? = nil
+        initialVolumeDecibels: Double? = nil,
+        videoHeight: Int = ReceiverConfig.defaultVideoHeight,
+        maxFPS: Int = ReceiverConfig.defaultMaxFPS
     ) {
         self.serverName = serverName
         self.bufferTimeMicros = bufferTimeMicros
         self.latencyTimeMicros = latencyTimeMicros
         self.maxQueueMicros = maxQueueMicros
         self.initialVolumeDecibels = initialVolumeDecibels
+        self.videoHeight = videoHeight
+        self.maxFPS = maxFPS
     }
 
     /// uxplay の音量（dB）を `-vol` に渡す 0〜1 の値に変換する。
@@ -38,6 +46,13 @@ public struct ReceiverConfig: Equatable, Sendable {
     public static let defaultServerName = "Mac mini Audio"
     public static let defaultBufferTimeMillis = 40
     public static let defaultMaxQueueMillis = 60
+    public static let defaultVideoHeight = 180
+    public static let defaultMaxFPS = 5
+
+    /// 16:9 で videoHeight に対応する映像の幅。
+    public var videoWidth: Int {
+        max(1, videoHeight) * 16 / 9
+    }
 
     /// uxplay に渡すコマンドライン引数を組み立てる。
     ///
@@ -53,6 +68,11 @@ public struct ReceiverConfig: Equatable, Sendable {
             "-nh",
             "-vs", "0",
             "-vsync", "no",
+            // 映像は捨てるだけなので、iPhone の圧縮負荷と Wi-Fi の帯域を減らすため最小限の画質を要求する。
+            // リフレッシュレートも既定の 60 から下げる
+            "-s", "\(videoWidth)x\(max(1, videoHeight))@30",
+            // 0 だと映像が止まったとみなされ切断される恐れがあるため 1 以上にする
+            "-fps", "\(max(1, maxFPS))",
             // -as の文字列は uxplay のパイプライン末尾にそのまま連結されるので、sink の手前に要素を挟める。
             // sync=false の sink はWi-Fiの詰まりで届いた音を全部鳴らし、溜まった遅延が二度と縮まない。
             // leaky キューで古い音を捨てて遅延の上限を固定する。
