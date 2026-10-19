@@ -48,9 +48,6 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>CFBundleVersion</key><string>1</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>LSUIElement</key><true/>
-  <!-- 全画面時に macOS のゲームモード（AirPods の低遅延化）を発動させるため -->
-  <key>LSApplicationCategoryType</key><string>public.app-category.games</string>
-  <key>GCSupportsGameMode</key><true/>
   <key>NSLocalNetworkUsageDescription</key><string>iPhone からの AirPlay 画面ミラーリングを受信するために使用します。</string>
   <key>NSBonjourServices</key>
   <array>

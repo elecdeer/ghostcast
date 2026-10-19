@@ -28,5 +28,6 @@ swift test
 ## 低遅延のコツ
 
 - Mac の **Wi-Fi をオフ**にして有線 LAN で繋ぐ（Wi-Fi と Bluetooth が無線チップを取り合うため）
+- 受信中は macOS の**ゲームモードを強制オン**にする（AirPods との Bluetooth 通信頻度が上がる）。Xcode 付属の `gamepolicyctl` を使うため Xcode が必要。終了・停止時は元のポリシーに戻す
 - 出力バッファは設定から変更可能（既定 40ms）
 - 出力直前に leaky キューを挟み、Wi-Fi の詰まりで溜まった音を捨てて遅延の上限を固定している（既定 60ms、設定で変更可能）

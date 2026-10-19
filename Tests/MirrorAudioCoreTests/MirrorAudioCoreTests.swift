@@ -97,3 +97,30 @@ import Testing
         #expect(NetworkSetupParser.wifiDevice(fromHardwarePorts: output) == nil)
     }
 }
+
+@Suite struct GameModePolicyTests {
+    @Test func 強制オンを読み取る() {
+        let output = """
+        Game mode is \u{1B}[0;32mon\u{1B}[0;0m.
+        Game mode enablement policy is currently disabled. Game mode is forced always on.
+        """
+        #expect(GameModePolicy.parse(statusOutput: output) == .on)
+    }
+
+    @Test func 自動を読み取る() {
+        let output = """
+        Game mode is \u{1B}[0;31moff\u{1B}[0;0m.
+        Game mode enablement policy is currently automatic. The system must meet all specified requirements to enable game mode.
+        """
+        #expect(GameModePolicy.parse(statusOutput: output) == .auto)
+    }
+
+    @Test func 強制オフを読み取る() {
+        let output = "Game mode enablement policy is currently disabled. Game mode is forced always off."
+        #expect(GameModePolicy.parse(statusOutput: output) == .off)
+    }
+
+    @Test func 想定外の出力はnil() {
+        #expect(GameModePolicy.parse(statusOutput: "error") == nil)
+    }
+}

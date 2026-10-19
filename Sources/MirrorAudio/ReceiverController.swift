@@ -12,6 +12,9 @@ final class ReceiverController {
     private var process: Process?
     private var isStopping = false
 
+    /// uxplay プロセスが起動・終了したときに呼ばれる。引数は起動中かどうか。
+    var onRunningChanged: ((Bool) -> Void)?
+
     /// ログの保存先。起動のたびに上書きする。
     static let logURL: URL = FileManager.default
         .homeDirectoryForCurrentUser
@@ -67,6 +70,7 @@ final class ReceiverController {
         self.process = process
         isStopping = false
         state = .starting
+        onRunningChanged?(true)
         startReading(fd: primary)
     }
 
@@ -114,6 +118,7 @@ final class ReceiverController {
             state = .failed(message: "uxplay が終了しました（コード \(status)）")
         }
         isStopping = false
+        onRunningChanged?(false)
     }
 
     private func handleLine(_ line: String) {

@@ -9,6 +9,7 @@ enum SettingsKey {
     static let bufferTimeMillis = "bufferTimeMillis"
     static let maxQueueMillis = "maxQueueMillis"
     static let autoStart = "autoStart"
+    static let forceGameMode = "forceGameMode"
 }
 
 /// 起動時の自動開始と終了時の後始末を担う。
@@ -17,7 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let receiver = ReceiverController()
     let wifi = WiFiMonitor()
     let loginItem = LoginItemModel()
-    let gameMode = GameModeWindowController()
+    let gameMode = GameModeManager()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [
@@ -25,8 +26,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SettingsKey.bufferTimeMillis: ReceiverConfig.defaultBufferTimeMillis,
             SettingsKey.maxQueueMillis: ReceiverConfig.defaultMaxQueueMillis,
             SettingsKey.autoStart: true,
+            SettingsKey.forceGameMode: true,
         ])
         wifi.start()
+        receiver.onRunningChanged = { [weak self] running in
+            self?.updateGameMode(receiverRunning: running)
+        }
         if UserDefaults.standard.bool(forKey: SettingsKey.autoStart) {
             receiver.start(config: Self.currentConfig())
         }
@@ -34,6 +39,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         receiver.terminateSynchronously()
+        gameMode.restoreSynchronously()
+    }
+
+    /// 受信中かつ設定が有効ならゲームモードを強制オンにし、そうでなければ元に戻す。
+    func updateGameMode(receiverRunning: Bool? = nil) {
+        let running = receiverRunning ?? receiver.state.isRunning
+        if running && UserDefaults.standard.bool(forKey: SettingsKey.forceGameMode) {
+            gameMode.forceOn()
+        } else {
+            gameMode.restore()
+        }
     }
 
     /// 保存済みの設定から ``ReceiverConfig`` を作る。
@@ -60,7 +76,7 @@ struct MirrorAudioApp: App {
         .menuBarExtraStyle(.menu)
 
         Window("MirrorAudio 設定", id: "settings") {
-            SettingsView(receiver: appDelegate.receiver, loginItem: appDelegate.loginItem)
+            SettingsView(appDelegate: appDelegate)
         }
         .windowResizability(.contentSize)
     }
@@ -80,11 +96,17 @@ struct MirrorAudioApp: App {
 struct MenuContent: View {
     let receiver: ReceiverController
     let wifi: WiFiMonitor
-    let gameMode: GameModeWindowController
+    let gameMode: GameModeManager
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Text(statusText)
+        if gameMode.isForcing {
+            Text("🎮 ゲームモード強制オン（Bluetooth 低遅延）")
+        }
+        if let reason = gameMode.unavailableReason {
+            Text("⚠️ \(reason)")
+        }
         if wifi.isWiFiConnected {
             Text("⚠️ Wi-Fi 接続中（遅延・途切れの原因）")
         }
@@ -94,7 +116,6 @@ struct MenuContent: View {
         } else {
             Button("開始") { receiver.start(config: AppDelegate.currentConfig()) }
         }
-        Button("ゲームモードで待機（全画面）") { gameMode.show() }
         Button("ログを表示") {
             NSWorkspace.shared.open(ReceiverController.logURL)
         }
@@ -146,12 +167,15 @@ final class LoginItemModel {
 
 /// 設定ウィンドウ。
 struct SettingsView: View {
-    let receiver: ReceiverController
-    let loginItem: LoginItemModel
+    let appDelegate: AppDelegate
     @AppStorage(SettingsKey.serverName) private var serverName = ReceiverConfig.defaultServerName
     @AppStorage(SettingsKey.bufferTimeMillis) private var bufferTimeMillis = ReceiverConfig.defaultBufferTimeMillis
     @AppStorage(SettingsKey.maxQueueMillis) private var maxQueueMillis = ReceiverConfig.defaultMaxQueueMillis
     @AppStorage(SettingsKey.autoStart) private var autoStart = true
+    @AppStorage(SettingsKey.forceGameMode) private var forceGameMode = true
+
+    private var receiver: ReceiverController { appDelegate.receiver }
+    private var loginItem: LoginItemModel { appDelegate.loginItem }
 
     private static let bufferChoices = [20, 40, 60, 80, 100, 200]
     private static let queueChoices = [20, 40, 60, 100, 200, 500]
@@ -169,6 +193,16 @@ struct SettingsView: View {
                 ForEach(Self.queueChoices, id: \.self) { Text("\($0) ms").tag($0) }
             }
             Text("Wi-Fi の詰まりで溜まった音をここまでで捨てます。小さいほど遅延が安定しますが、音飛びしやすくなります。")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Toggle("受信中はゲームモードを強制オン", isOn: Binding(
+                get: { forceGameMode },
+                set: {
+                    forceGameMode = $0
+                    appDelegate.updateGameMode()
+                }
+            ))
+            Text("AirPods との Bluetooth 通信頻度が上がり遅延が下がります。Xcode 付属の gamepolicyctl を使います。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Toggle("アプリ起動時にレシーバーを開始", isOn: $autoStart)
