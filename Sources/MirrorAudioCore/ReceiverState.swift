@@ -6,6 +6,8 @@ public enum ReceiverEvent: Equatable, Sendable {
     case clientConnected(deviceName: String)
     /// iPhone との接続が切れた。
     case clientDisconnected
+    /// iPhone 側で音量が変わった（dB、-30 で無音、0 で最大）。
+    case volumeChanged(decibels: Double)
 }
 
 /// レシーバーの状態。
@@ -36,6 +38,8 @@ public enum ReceiverState: Equatable, Sendable {
             return .connected(deviceName: name)
         case .clientDisconnected:
             return .waiting
+        case .volumeChanged:
+            return self
         }
     }
 }

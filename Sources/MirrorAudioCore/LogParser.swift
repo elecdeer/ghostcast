@@ -13,6 +13,10 @@ public enum LogParser {
         if line.contains("Connection closed on socket") {
             return .clientDisconnected
         }
+        if let match = line.firstMatch(of: /^AirPlay volume (-?[0-9]+(?:\.[0-9]+)?) dB/),
+           let decibels = Double(match.1) {
+            return .volumeChanged(decibels: decibels)
+        }
         return nil
     }
 }

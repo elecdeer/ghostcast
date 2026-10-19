@@ -10,6 +10,8 @@ enum SettingsKey {
     static let maxQueueMillis = "maxQueueMillis"
     static let autoStart = "autoStart"
     static let forceGameMode = "forceGameMode"
+    /// 最後に iPhone から設定された音量（dB）。次回起動時の初期音量にする。
+    static let lastVolumeDecibels = "lastVolumeDecibels"
 }
 
 /// 起動時の自動開始と終了時の後始末を担う。
@@ -31,6 +33,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         wifi.start()
         receiver.onRunningChanged = { [weak self] running in
             self?.updateGameMode(receiverRunning: running)
+        }
+        receiver.onVolumeChanged = { decibels in
+            UserDefaults.standard.set(decibels, forKey: SettingsKey.lastVolumeDecibels)
         }
         if UserDefaults.standard.bool(forKey: SettingsKey.autoStart) {
             receiver.start(config: Self.currentConfig())
@@ -58,7 +63,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return ReceiverConfig(
             serverName: defaults.string(forKey: SettingsKey.serverName) ?? ReceiverConfig.defaultServerName,
             bufferTimeMicros: defaults.integer(forKey: SettingsKey.bufferTimeMillis) * 1000,
-            maxQueueMicros: defaults.integer(forKey: SettingsKey.maxQueueMillis) * 1000
+            maxQueueMicros: defaults.integer(forKey: SettingsKey.maxQueueMillis) * 1000,
+            initialVolumeDecibels: defaults.object(forKey: SettingsKey.lastVolumeDecibels) as? Double
         )
     }
 }

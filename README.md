@@ -25,6 +25,10 @@ swift test
 > Command Line Tools の swift は、プロジェクトのパスに空白があるとマクロ（`@Observable` / `@Test`）を解決できない。
 > `build-app.sh` は自動で一時ディレクトリにコピーしてビルドするが、`swift test` は空白のないパスで実行すること。
 
+## 音量
+
+iPhone から変更された音量を覚えておき、次回起動時に `-vol` で初期音量として渡す（uxplay は再起動すると最大音量に戻るため）。
+
 ## 低遅延のコツ
 
 - Mac の **Wi-Fi をオフ**にして有線 LAN で繋ぐ（Wi-Fi と Bluetooth が無線チップを取り合うため）

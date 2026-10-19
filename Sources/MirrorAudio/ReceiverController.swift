@@ -14,6 +14,8 @@ final class ReceiverController {
 
     /// uxplay プロセスが起動・終了したときに呼ばれる。引数は起動中かどうか。
     var onRunningChanged: ((Bool) -> Void)?
+    /// iPhone 側で音量が変わったときに呼ばれる。引数は dB。
+    var onVolumeChanged: ((Double) -> Void)?
 
     /// ログの保存先。起動のたびに上書きする。
     static let logURL: URL = FileManager.default
@@ -123,6 +125,9 @@ final class ReceiverController {
 
     private func handleLine(_ line: String) {
         guard let event = LogParser.event(from: line) else { return }
+        if case .volumeChanged(let decibels) = event {
+            onVolumeChanged?(decibels)
+        }
         state = state.applying(event)
     }
 

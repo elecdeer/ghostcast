@@ -12,6 +12,23 @@ import Testing
         ])
     }
 
+    @Test func 初期音量を指定しなければvolを付けない() {
+        let config = ReceiverConfig(serverName: "x", bufferTimeMicros: 40_000)
+        #expect(!config.arguments.contains("-vol"))
+    }
+
+    @Test func 初期音量をvolの割合に変換して付ける() {
+        let config = ReceiverConfig(serverName: "x", bufferTimeMicros: 40_000, initialVolumeDecibels: -15.0)
+        #expect(Array(config.arguments.suffix(2)) == ["-vol", "0.500"])
+    }
+
+    @Test func 音量の割合は範囲内に収める() {
+        #expect(ReceiverConfig.volumeFraction(fromDecibels: 0.0) == 1.0)
+        #expect(ReceiverConfig.volumeFraction(fromDecibels: 3.0) == 1.0)
+        #expect(ReceiverConfig.volumeFraction(fromDecibels: -30.0) == 0.01)
+        #expect(ReceiverConfig.volumeFraction(fromDecibels: -144.0) == 0.01)
+    }
+
     @Test func キューの上限をナノ秒で指定する() {
         let config = ReceiverConfig(serverName: "x", bufferTimeMicros: 40_000, maxQueueMicros: 100_000)
         #expect(config.arguments.last?.hasPrefix("queue max-size-time=100000000 ") == true)
@@ -42,8 +59,14 @@ import Testing
         #expect(LogParser.event(from: "Connection closed on socket 15") == .clientDisconnected)
     }
 
+    @Test func 音量の変化を検出する() {
+        let line = "AirPlay volume -14.4 dB (slider 52%): GStreamer volume 0.192"
+        #expect(LogParser.event(from: line) == .volumeChanged(decibels: -14.4))
+    }
+
     @Test func 無関係な行は無視する() {
-        #expect(LogParser.event(from: "AirPlay volume -14.4 dB (slider 52%): GStreamer volume 0.192") == nil)
+        #expect(LogParser.event(from: "raop_rtp starting audio") == nil)
+        #expect(LogParser.event(from: "initial_volume attenuation -15.000000 db") == nil)
     }
 }
 
@@ -70,6 +93,11 @@ import Testing
         let connected = ReceiverState.waiting.applying(.clientConnected(deviceName: "iPhone"))
         #expect(connected == .connected(deviceName: "iPhone"))
         #expect(connected.applying(.clientDisconnected) == .waiting)
+    }
+
+    @Test func 音量の変化では状態が変わらない() {
+        let connected = ReceiverState.connected(deviceName: "iPhone")
+        #expect(connected.applying(.volumeChanged(decibels: -10)) == connected)
     }
 
     @Test func 停止中のイベントは無視する() {
