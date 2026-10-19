@@ -17,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let receiver = ReceiverController()
     let wifi = WiFiMonitor()
     let loginItem = LoginItemModel()
+    let gameMode = GameModeWindowController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         UserDefaults.standard.register(defaults: [
@@ -52,7 +53,7 @@ struct MirrorAudioApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuContent(receiver: appDelegate.receiver, wifi: appDelegate.wifi)
+            MenuContent(receiver: appDelegate.receiver, wifi: appDelegate.wifi, gameMode: appDelegate.gameMode)
         } label: {
             Image(systemName: Self.symbol(for: appDelegate.receiver.state))
         }
@@ -79,6 +80,7 @@ struct MirrorAudioApp: App {
 struct MenuContent: View {
     let receiver: ReceiverController
     let wifi: WiFiMonitor
+    let gameMode: GameModeWindowController
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -92,6 +94,7 @@ struct MenuContent: View {
         } else {
             Button("開始") { receiver.start(config: AppDelegate.currentConfig()) }
         }
+        Button("ゲームモードで待機（全画面）") { gameMode.show() }
         Button("ログを表示") {
             NSWorkspace.shared.open(ReceiverController.logURL)
         }
