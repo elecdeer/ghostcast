@@ -1,5 +1,5 @@
 import AppKit
-import MirrorAudioCore
+import GhostcastCore
 import ServiceManagement
 import SwiftUI
 
@@ -76,7 +76,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 @main
-struct MirrorAudioApp: App {
+struct GhostcastApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
@@ -87,7 +87,7 @@ struct MirrorAudioApp: App {
         }
         .menuBarExtraStyle(.menu)
 
-        Window("MirrorAudio 設定", id: "settings") {
+        Window("Ghostcast 設定", id: "settings") {
             SettingsView(appDelegate: appDelegate)
         }
         .windowResizability(.contentSize)

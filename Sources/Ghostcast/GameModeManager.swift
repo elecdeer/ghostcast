@@ -1,5 +1,5 @@
 import Foundation
-import MirrorAudioCore
+import GhostcastCore
 import Observation
 
 /// 受信中だけ macOS のゲームモードを強制オンにする。

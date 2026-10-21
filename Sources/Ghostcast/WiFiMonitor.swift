@@ -1,5 +1,5 @@
 import Foundation
-import MirrorAudioCore
+import GhostcastCore
 import Observation
 
 /// Wi-Fi がネットワークに接続しているかを定期的に調べる。

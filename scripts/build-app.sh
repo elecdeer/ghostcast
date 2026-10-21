@@ -1,5 +1,5 @@
 #!/bin/bash
-# MirrorAudio.app を組み立てて ~/Applications にインストールする。
+# Ghostcast.app を組み立てて ~/Applications にインストールする。
 #   UXPLAY_BIN: 同梱する uxplay のパス（既定: ~/Dev/github.com/FDH2/UxPlay/build/uxplay）
 #   INSTALL_DIR: インストール先（既定: ~/Applications）
 set -euo pipefail
@@ -7,7 +7,7 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 UXPLAY_BIN="${UXPLAY_BIN:-$HOME/Dev/github.com/FDH2/UxPlay/build/uxplay}"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/Applications}"
-APP_NAME="MirrorAudio"
+APP_NAME="Ghostcast"
 
 if [[ ! -x "$UXPLAY_BIN" ]]; then
   echo "uxplay が見つかりません: $UXPLAY_BIN" >&2
@@ -18,7 +18,7 @@ fi
 # 解決できないため、空白を含む場合は一時ディレクトリにコピーしてビルドする
 BUILD_SRC="$PROJECT_DIR"
 if [[ "$PROJECT_DIR" == *" "* ]]; then
-  BUILD_SRC="${TMPDIR:-/tmp}/mirroraudio-src"
+  BUILD_SRC="${TMPDIR:-/tmp}/ghostcast-src"
   BUILD_SRC="${BUILD_SRC// /_}"
   rm -rf "$BUILD_SRC"
   mkdir -p "$BUILD_SRC"
@@ -40,9 +40,9 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleIdentifier</key><string>dev.elecdeer.MirrorAudio</string>
-  <key>CFBundleName</key><string>MirrorAudio</string>
-  <key>CFBundleExecutable</key><string>MirrorAudio</string>
+  <key>CFBundleIdentifier</key><string>dev.elecdeer.Ghostcast</string>
+  <key>CFBundleName</key><string>Ghostcast</string>
+  <key>CFBundleExecutable</key><string>Ghostcast</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>0.1.0</string>
   <key>CFBundleVersion</key><string>1</string>

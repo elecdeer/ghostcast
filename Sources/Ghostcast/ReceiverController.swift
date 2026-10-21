@@ -1,6 +1,6 @@
 import Darwin
 import Foundation
-import MirrorAudioCore
+import GhostcastCore
 import Observation
 
 /// uxplay プロセスの起動・停止と、ログからの状態追跡を行う。
@@ -20,7 +20,7 @@ final class ReceiverController {
     /// ログの保存先。起動のたびに上書きする。
     static let logURL: URL = FileManager.default
         .homeDirectoryForCurrentUser
-        .appending(path: "Library/Logs/MirrorAudio/uxplay.log")
+        .appending(path: "Library/Logs/Ghostcast/uxplay.log")
 
     /// アプリに同梱された uxplay のパス。
     ///

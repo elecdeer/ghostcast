@@ -1,4 +1,4 @@
-# MirrorAudio
+# Ghostcast
 
 iPhone の AirPlay 画面ミラーリングを受信し、**音声だけ**を Mac で再生するメニューバーアプリ。
 iPhone でゲームをしながら、Mac に繋いだ AirPods で音を聞くためのもの。
@@ -14,7 +14,7 @@ iPhone でゲームをしながら、Mac に繋いだ AirPods で音を聞くた
 scripts/build-app.sh
 ```
 
-`~/Applications/MirrorAudio.app` にインストールされる。
+`~/Applications/Ghostcast.app` にインストールされる。
 
 テスト:
 

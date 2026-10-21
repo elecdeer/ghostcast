@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "MirrorAudio",
+    name: "Ghostcast",
     platforms: [.macOS(.v14)],
     targets: [
-        .target(name: "MirrorAudioCore"),
-        .executableTarget(name: "MirrorAudio", dependencies: ["MirrorAudioCore"]),
-        .testTarget(name: "MirrorAudioCoreTests", dependencies: ["MirrorAudioCore"]),
+        .target(name: "GhostcastCore"),
+        .executableTarget(name: "Ghostcast", dependencies: ["GhostcastCore"]),
+        .testTarget(name: "GhostcastCoreTests", dependencies: ["GhostcastCore"]),
     ]
 )

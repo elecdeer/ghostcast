@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import MirrorAudioCore
+@testable import GhostcastCore
 
 @Suite struct ReceiverConfigTests {
     @Test func 映像なし低遅延の引数を組み立てる() {
