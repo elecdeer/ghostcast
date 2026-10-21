@@ -36,3 +36,7 @@ iPhone から変更された音量を覚えておき、次回起動時に `-vol`
 - 受信中は macOS の**ゲームモードを強制オン**にする（AirPods との Bluetooth 通信頻度が上がる）。Xcode 付属の `gamepolicyctl` を使うため Xcode が必要。終了・停止時は元のポリシーに戻す
 - 出力バッファは設定から変更可能（既定 40ms）
 - 出力直前に leaky キューを挟み、Wi-Fi の詰まりで溜まった音を捨てて遅延の上限を固定している（既定 60ms、設定で変更可能）
+
+## ライセンス
+
+[GPL-3.0](LICENSE)。ビルドした `.app` には [UxPlay](https://github.com/FDH2/UxPlay)（GPL-3.0）の `uxplay` が同梱される。
