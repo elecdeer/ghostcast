@@ -11,6 +11,8 @@ final class ReceiverController {
 
     private var process: Process?
     private var isStopping = false
+    /// 再起動待ちの設定。プロセスの終了処理が済んだらこの設定で起動し直す。
+    private var pendingRestartConfig: ReceiverConfig?
 
     /// uxplay プロセスが起動・終了したときに呼ばれる。引数は起動中かどうか。
     var onRunningChanged: ((Bool) -> Void)?
@@ -78,6 +80,8 @@ final class ReceiverController {
 
     /// uxplay を SIGINT で正常終了させる。応答しなければ SIGTERM で止める。
     func stop() {
+        // 再起動の終了待ち中に停止されたら、再起動は取り消す
+        pendingRestartConfig = nil
         guard let process, process.isRunning else { return }
         isStopping = true
         process.interrupt()
@@ -95,11 +99,10 @@ final class ReceiverController {
             return
         }
         stop()
-        Task { [weak self] in
-            // 終了を待ってから起動しないとポートが埋まったままになる
-            while process.isRunning { try? await Task.sleep(for: .milliseconds(100)) }
-            self?.start(config: config)
-        }
+        // 終了を待ってから起動しないとポートが埋まったままになる。
+        // process.isRunning のポーリングで待つと、state が .stopped に戻る前に start を呼んでしまい
+        // 起動がスキップされるため、handleTermination から起動する。
+        pendingRestartConfig = config
     }
 
     /// アプリ終了時に呼ぶ。孤児プロセスを残さないよう終了まで待つ。
@@ -121,6 +124,10 @@ final class ReceiverController {
         }
         isStopping = false
         onRunningChanged?(false)
+        if let config = pendingRestartConfig {
+            pendingRestartConfig = nil
+            start(config: config)
+        }
     }
 
     private func handleLine(_ line: String) {
